@@ -350,9 +350,9 @@ bot.onText(/\/help|\/ayuda/, (msg) => {
     +"automáticamente tirará 2 dados y se quedará con el mayor o menor, según corresponda.\n\n3. Después de la tirada "
     +"puedes poner x seguido de un número para repetir la tirada especificada tantas veces como quieras.\n\nUn ejemplo "
     +"de un comando podría ser:\n/h20+1d4+3x2\n\n4. Para realizar operaciones usa el comando /calc seguido de la operación."
-    +" Deberá de ser solo números y operaciones sin letras.\n\n5. Usa el comando /w para realizar tiradas de Mundo de las "
+    +" Deberá de ser solo números y operaciones sin letras.\n\n5. Usa el comando /w para realizar tiradas de Crónicas de las "
     +"Tinieblas. Pon el número de dados a lanzar y el bot automáticamente pondrá si tiene éxito tu tirada. También admite "
-    +"tiradas Rote y 10Less, añadiendo a la w una r o una l respectivamente."
+    +"tiradas _Rote_ y _10Less_, añadiendo a la w una r o una l respectivamente."
 
     +"\n\n\nPara cualquier consulta escribe a *@RubenPal*.",
     {parse_mode : "Markdown"});
