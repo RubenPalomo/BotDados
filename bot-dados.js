@@ -3,7 +3,7 @@ const { Console, count } = require('console');
 const TelegramBot = require('node-telegram-bot-api');
 
 // Creamos una constante que guarda el Token de nuestro Bot de Telegram que, previamente, hemos creado desde el bot @BotFather
-const token = 'TOKEN';
+const token = '1463801315:AAFAR9_UxC3PLgvYP1d0kMg_lWWMhou7jvw';
 
 // Creamos la constante bot que utilizaremos para acceder a las propiedades de nuestro bot
 const bot = new TelegramBot(token, {polling: true});
@@ -12,7 +12,7 @@ const bot = new TelegramBot(token, {polling: true});
 // ⚠️ Después de este comentario es donde ponemos la lógica de nuestro bot donde podemos crear los comandos y eventos para darle funcionalidades a nuestro bot
 
 
-// Importamos función util para añadir tiempo de espera a ciertos elementos y creamos la constante espera que pondrá el programa en espera los segundos que queramos
+// Importamos función util para añadir tiempo de espera a ciertos elementos y creamos la constante espera que pondrá el programa en espera los milisegundos que queramos
 const util = require('util');
 const espera = util.promisify(setTimeout);
 
@@ -34,15 +34,16 @@ async function animadorDePartidas(msg, critico_pifia) {
 }
 
 // Función para realizar las tiradas de un dado estándar
-function generadorTiradasStandar(numero_dados, caras_dado, msg){
-    let string = "";
-    let tirada;
+function generadorTiradasStandar(numero_dados, caras_dado, msg) {
+    let string = "";    // Recibirá el valor de las tiradas rodeadas de corchetes se añadirán barras invertidas para que no entre en conflicto con Markdown
+    let tirada;         // Recibirá el valor de cada una de las tiradas
 
-    if (numero_dados != null && caras_dado != null)
+    if (numero_dados == null && caras_dado == null)
         return string;
 
     while (numero_dados > 0) {
         // Generamos un número aleatorio por cada tirada
+
         tirada = random(caras_dado);
         string += "\\[" + tirada + "]";
         
@@ -67,7 +68,7 @@ function generadorTiradasEspeciales(tipo, numero_dados, caras_dado, msg) {
     let tirada;
     let tirada2;
 
-    if (numero_dados != null && caras_dado != null)
+    if (numero_dados == null && caras_dado == null)
         return string;
 
     while (numero_dados > 0) {
@@ -84,9 +85,9 @@ function generadorTiradasEspeciales(tipo, numero_dados, caras_dado, msg) {
             string += "+";
 
         // En caso de tener un crítico o una pifia en el dado que nos interesa llamamos al animador de partidas, por darle vidilla
-        if (string.includes("*20*") && caras_dado == 20)
+        if ((tirada == 20 || tirada2 == 20) && string.includes("*20*") && caras_dado == 20)
             animadorDePartidas(msg, "CRITICO");
-        else if (string.includes("*1*") && caras_dado == 20)
+        else if ((tirada == 1 || tirada2 == 1) && string.includes("*1*") && caras_dado == 20)
             animadorDePartidas(msg, "PIFIA");
 
         numero_dados--;
@@ -202,7 +203,7 @@ function tiradaDados(msg) {
         while (posicion < string.length && !isNaN(string[posicion]))
             posicion++;
         if (posicion != string.indexOf(letra) + 1){
-            caras_dado = parseInt(string.substring(string.indexOf("d") + 1, posicion))      // Obtenemos el número de caras del dado
+            caras_dado = parseInt(string.substring(string.indexOf(letra) + 1, posicion))      // Obtenemos el número de caras del dado
         }
         else
             return;
