@@ -1,12 +1,12 @@
 {
-  "name": "rubenbot",
-  "version": "1.0.0",
-  "description": "Bot para pruebas",
-  "main": "RubenBot",
+  "name": "dadillosbot",
+  "version": "2.0.0",
+  "description": "Bot que permite generar números aleatorios que simulen las tiradas de un dado para poder jugar a determinados juegos en telegram.",
+  "main": "bot-dados",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Ruben",
+  "author": "Rubén Palomo Fontán (ruben.palomof@gmail.com)",
   "license": "ISC",
   "dependencies": {
     "node-telegram-bot-api": "^0.56.0"
