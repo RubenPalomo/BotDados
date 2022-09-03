@@ -3,18 +3,18 @@ const { Console, count } = require('console');
 const TelegramBot = require('node-telegram-bot-api');
 
 // Creamos una constante que guarda el Token de nuestro Bot de Telegram que, previamente, hemos creado desde el bot @BotFather
-const token = '1463801315:AAFAR9_UxC3PLgvYP1d0kMg_lWWMhou7jvw';
+const token = 'TOKEN DEL BOT';
 
 // Creamos la constante bot que utilizaremos para acceder a las propiedades de nuestro bot
 const bot = new TelegramBot(token, {polling: true});
 
-
-// ⚠️ Después de este comentario es donde ponemos la lógica de nuestro bot donde podemos crear los comandos y eventos para darle funcionalidades a nuestro bot
-
-
 // Importamos función util para añadir tiempo de espera a ciertos elementos y creamos la constante espera que pondrá el programa en espera los milisegundos que queramos
 const util = require('util');
 const espera = util.promisify(setTimeout);
+
+
+// ⚠️ Después de este comentario es donde ponemos la lógica de nuestro bot donde podemos crear los comandos y eventos para darle funcionalidades a nuestro bot
+
 
 // Creamos la función para generar números aleatorios que será clave para las tiradas de dados
 function random(numero) {
