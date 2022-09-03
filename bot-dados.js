@@ -197,6 +197,9 @@ function tiradaDados(msg) {
             numero_dados = parseInt(string.substring(posicion, string.indexOf(letra)));   // Obtenemos el número de dados (por defecto será 1)
         }
 
+        if (numero_dados > 100)
+            return;
+
         // Reasignamos el valor a posición. En este caso tomará el valor posterior a la letra para obtener el número de caras del dado a tirar
         posicion = string.indexOf(letra) + 1;
 
@@ -265,6 +268,9 @@ function tiradaDadosTinieblas(msg) {
         bot.sendMessage(msg.chat.id, "Usa /help o /ayuda si necesitas información sobre el bot.");
         return;
     }
+
+    if (numero_dados > 100)
+        return;
 
     // Ponemos un condicional para tiradas especiales de w0 en la que solo se tira un dado y solo cuenta como acierto si sale un 10
     if (numero_dados == 0) {
