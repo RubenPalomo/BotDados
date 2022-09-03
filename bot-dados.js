@@ -363,6 +363,7 @@ bot.onText(/\/help|\/ayuda/, (msg) => {
 
     Bot disponible en telegram ( @DadillosBot )
     Creado por: Rubén Palomo Fontán
+    LinkedIn: https://www.linkedin.com/in/ruben-palomo-fontan/
     Contacto: ruben.palomof@gmail.com
  
  */
