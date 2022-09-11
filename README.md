@@ -8,5 +8,5 @@ Todos los comandos están recogidos en un mensaje de ayuda al usuario que se man
 
 **Características**<br>
 -El bot cuenta con seguridad ante comandos mal escritos o un excesivo número de tiradas.<br>
--En la creación del bot se busca la versatilidad, por lo que muchos comandos tienen diferentes formas de utilizarse. El comando para ayuda, por ejemplo, tiene dos comandos diferentes y las tiradas *rote* y *10Less* admite el cambio de orden en la w y la r o l.<br>
+-En la creación del bot se buscó la versatilidad, por lo que muchos comandos tienen diferentes formas de utilizarse. El comando para ayuda, por ejemplo, tiene dos comandos diferentes y las tiradas *rote* y *10Less* admite el cambio de orden en la w y la r o l.<br>
 -Este bot ha sido testeado por la comunidad de juegos en línea de telegram y actualmente es utilizados por muchos jugadores en sus partidas.
