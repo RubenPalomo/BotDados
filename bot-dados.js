@@ -1,6 +1,7 @@
 // Importamos la librería node-telegram-bot-api 
 const { Console, count } = require('console');
 const TelegramBot = require('node-telegram-bot-api');
+const { parse } = require('path');
 
 // Creamos una constante que guarda el Token de nuestro Bot de Telegram que, previamente, hemos creado desde el bot @BotFather
 const token = 'TOKEN DEL BOT';
@@ -29,7 +30,10 @@ async function animadorDePartidas(msg, critico_pifia) {
     }
     else if(critico_pifia=="PIFIA"){
         await espera(500);
-        bot.sendMessage(msg.chat.id, "💩 ¡@" + msg.from.username + " tuvo una *pifia*! 💩", {parse_mode : "Markdown"});
+        if (!msg.from.username.includes("*") && !msg.from.username.includes("_"))
+            bot.sendMessage(msg.chat.id, "💩 ¡@" + msg.from.username + " tuvo una *pifia*! 💩", {parse_mode : "Markdown"});
+        else
+            bot.sendMessage(msg.chat.id, "💩 ¡@" + msg.from.username + " tuvo una pifia! 💩");
     }
 }
 
@@ -55,6 +59,33 @@ function generadorTiradasStandar(numero_dados, caras_dado, msg) {
             animadorDePartidas(msg, "CRITICO");
         else if (tirada == 1 && caras_dado == 20)
             animadorDePartidas(msg, "PIFIA");
+
+        numero_dados--;
+    }
+
+    return string;
+}
+
+// Función para realizar las tiradas de dados explosivos (si el número de caras es igual a la tirada se repite)
+function generadorTiradasExplosivas(numero_dados, caras_dado) {
+    let string = "";    // Recibirá el valor de las tiradas rodeadas de corchetes se añadirán barras invertidas para que no entre en conflicto con Markdown
+    let tirada;         // Recibirá el valor de cada una de las tiradas
+
+    if (numero_dados == null && caras_dado == null)
+        return string;
+
+    while (numero_dados > 0) {
+        // Generamos un número aleatorio por cada tirada
+
+        tirada = random(caras_dado);
+        string += "\\[" + tirada + "]";
+
+        // Añadimos la explosividad
+        if (tirada == caras_dado)
+            numero_dados++;
+        
+        if (numero_dados != 1)
+            string += "+";
 
         numero_dados--;
     }
@@ -122,6 +153,23 @@ function cuenta(string) {
     // Primero reemplazamos para esta función los corchetes por paréntesis, ya que generan errores si no lo hacemos. Usamos un bucle ya que da problemas el replaceAll
     while (string.includes("[") && string.includes("]")) {
         string = string.replace("\\[", "(").replace("]", ")");
+        string = string.replace(" ", "");
+    }
+
+    // Primero comprobamos si hay , (de haberlo no se calcula)
+    if (string.includes(",")) {
+        if (string.includes("!"))
+            return "?\nPor favor, escribe de igual forma los dados para poder compararlos."
+        let numeros = string.split(",");
+        if (numeros.length == 2) {
+            if (eval(numeros[0]) > eval(numeros[1]))
+                return eval(numeros[0]);
+            else
+                return eval(numeros[1]);
+        }
+        else {
+            return;
+        }
     }
 
     // En caso de haber usado las tiradas especiales de ventaja o desventaja eliminaremos la tirada que no nos interesa
@@ -146,7 +194,14 @@ function cuenta(string) {
     }
 
     // Por último, una vez depurado el string retornamos el resultado de todas las operaciones
-    return eval(string);
+    try {
+        return eval(string);    
+    }
+    catch (error) {
+        fecha = new Date();
+        console.log(fecha + " " + error);
+        return "Error";
+    }
 }
 
 // Creamos la función para lanzar dados usando números aleatorios. Esta función será la que se llamará en primer lugar cuando nuestro bot reciba el comando oportuno
@@ -154,11 +209,20 @@ function tiradaDados(msg) {
     let string = msg.text.toLowerCase().replace("/", "");   // Recibe la cadena de texto pasada a minúsculas y elimina el /
     let numero_dados;                                       // Recibirá el número de dados
     let caras_dado;                                         // Servirá para saber el número de caras de cada dado
+    let explosivo = false;                                  // Servirá para saber si los dados son explosivos
+
+    string = string.replace("!!!", "!, d6!");
+    string = string.replace("!!", ", d6!");
+
+    if (string.includes("d1!")) {
+        bot.sendMessage(msg.chat.id, "Muy gracioso");
+        return;
+    }
 
     // Si hay una x en el texto del mensaje repetimos la secuencia tantas veces como nos indiquen con recursividad
     if (string.includes("x")) {
         let parts = string.split("x");
-        if (!isNaN(parts[1]) && parseInt(parts[1]) < 101) {
+        if (!isNaN(parts[1]) && parseInt(parts[1]) < 21) {
             while (parseInt(parts[1]) > 0) {
                 msg.text = parts[0];
                 tiradaDados(msg);
@@ -187,7 +251,7 @@ function tiradaDados(msg) {
         posicion = string.indexOf(letra) - 1;
 
         // Comprobamos si antes de la letra que indica el tipo de tirada hay un número (que expresaría la cantidad de dados de ese tipo a tirar)
-        while (posicion >= 0 && !isNaN(string[posicion]))
+        while (posicion >= 0 && !isNaN(string[posicion]) && string[posicion] != " ")
             posicion--;
         
         // En caso de que la posición haya cambiado, es decir, que haya un número antes de la letra del comando asignamos su valor a numero_dados. En caso contrario seguirá valiendo 1
@@ -203,10 +267,15 @@ function tiradaDados(msg) {
         // Reasignamos el valor a posición. En este caso tomará el valor posterior a la letra para obtener el número de caras del dado a tirar
         posicion = string.indexOf(letra) + 1;
 
-        while (posicion < string.length && !isNaN(string[posicion]))
+        while (posicion < string.length && (!isNaN(string[posicion]) || string[posicion] == "!"))
             posicion++;
-        if (posicion != string.indexOf(letra) + 1){
-            caras_dado = parseInt(string.substring(string.indexOf(letra) + 1, posicion))      // Obtenemos el número de caras del dado
+        if (posicion != string.indexOf(letra) + 1) {
+            if (!string.substring(string.indexOf(letra) + 1, posicion).includes("!"))
+                caras_dado = parseInt(string.substring(string.indexOf(letra) + 1, posicion));     // Obtenemos el número de caras del dado
+            else {
+                caras_dado = parseInt(string.substring(string.indexOf(letra) + 1, posicion).replace("!", ""));
+                explosivo = true;
+            }
         }
         else
             return;
@@ -214,10 +283,23 @@ function tiradaDados(msg) {
 
         // Creamos un condicional para la d o el resto, ya que las funciones a llamar serán diferentes
         if (letra == "d") {
-            if (string.includes(numero_dados + letra + caras_dado))
-                string = string.replace(numero_dados + letra + caras_dado, generadorTiradasStandar(numero_dados, caras_dado, msg));
-            else
-                string = string.replace(letra + caras_dado, generadorTiradasStandar(numero_dados, caras_dado, msg));
+            if (!explosivo) {
+                if (string.includes(numero_dados + letra + caras_dado))
+                    string = string.replace(numero_dados + letra + caras_dado, generadorTiradasStandar(numero_dados, caras_dado, msg));
+                else
+                    string = string.replace(letra + caras_dado, generadorTiradasStandar(numero_dados, caras_dado, msg));
+            }
+            else {
+                let text = string;
+                string = string.replace(letra + caras_dado + "!", letra + caras_dado);
+                string = string.replace(letra + "!" + caras_dado, letra + caras_dado);
+                if (string.includes(numero_dados + letra + caras_dado))
+                    string = string.replace(numero_dados + letra + caras_dado, generadorTiradasExplosivas(numero_dados, caras_dado));
+                else
+                    string = string.replace(letra + caras_dado, generadorTiradasExplosivas(numero_dados, caras_dado));
+                if (text == string)
+                    return;
+            }
         }
         else {
             if (string.includes(numero_dados + letra + caras_dado))
@@ -230,11 +312,25 @@ function tiradaDados(msg) {
     // Por último, tras asegurarnos de que no ha habido errores mandamos el mensaje al usuario con el formato deseado y la cuenta final de las operaciones de los dados
     if (string != ""){
         try {
-            bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + " = *" + cuenta(string) + "*", {parse_mode: "Markdown"});
+            if (!msg.from.username.includes("*") && !msg.from.username.includes("_"))
+                bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + " = *" + cuenta(string) + "*", {parse_mode: "Markdown"});
+            else {
+                let result = cuenta(string);
+                while (string.includes("\\")) {
+                    string = string.replace("\\", "");
+                }
+                while (string.includes("*") || string.includes("_")) {
+                    string = string.replace("*", "").replace("_", "").replace("\\", "");
+                }
+
+                bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + " = " + result);
+            }
         } 
         // En caso de error mandaremos un mensaje de ayuda al usuario
-        catch {
+        catch (error){
             bot.sendMessage(msg.chat.id, "Usa /help o /ayuda si necesitas información sobre el bot.");
+            fecha = new Date();
+            console.log(fecha + " " + error);
         }
     }
 }
@@ -279,7 +375,17 @@ function tiradaDadosTinieblas(msg) {
             resultado_tirada = "\n*¡Acierto!*🎉";
         else
             resultado_tirada = "\n*¡Fallo!*💩"
-        bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + resultado_tirada, {parse_mode: "Markdown"});
+        if (!msg.from.username.includes("*") && !msg.from.username.includes("_"))
+            bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + resultado_tirada, {parse_mode: "Markdown"});
+        else{
+            while (string.includes("\\")) {
+                    string = string.replace("\\", "");
+            }
+            while (string.includes("*") || string.includes("_")) {
+                string = string.replace("*", "").replace("_", "").replace("\\", "");
+            }
+            bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + resultado_tirada);
+        }
         return;
     }
 
@@ -309,7 +415,56 @@ function tiradaDadosTinieblas(msg) {
         resultado_tirada = "\n*¡Fallo!*💩"
 
     // Y por último mandamos un mensaje al usuario con su tirada, el número de éxitos y el resultado con el formato elegido
-    bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + "\n*Exitos:* " + exitos + resultado_tirada, {parse_mode: "Markdown"});
+    if (!msg.from.username.includes("*") && !msg.from.username.includes("_"))
+        bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + "\n*Exitos:* " + exitos + resultado_tirada, {parse_mode: "Markdown"});
+    else{
+        while (string.includes("\\")) {
+                string = string.replace("\\", "");
+        }
+        while (string.includes("*") || string.includes("_")) {
+            string = string.replace("*", "").replace("_", "").replace("\\", "");
+        }
+        bot.sendMessage(msg.chat.id, "@" + msg.from.username + "\n🎲 " + string + "\nExitos: " + exitos + resultado_tirada);
+    }
+}
+
+// Creamos una función también para simplificar las tiradas en el sistema de Swade
+function tiradaDadosSwade(msg) {
+    let string = msg.text.toLowerCase().replace("/", "");   // Recibe la cadena de texto pasada a minúsculas y elimina el /
+    let numero_dados;                                       // Recibirá el número de dados
+    let letra = "s"
+
+    // Si hay una x en el texto del mensaje repetimos la secuencia tantas veces como nos indiquen con recursividad
+    if (string.includes("x")) {
+        let parts = string.split("x");
+        if (!isNaN(parts[1]) && parseInt(parts[1]) < 21) {
+            while (parseInt(parts[1]) > 0) {
+                msg.text = parts[0];
+                tiradaDadosSwade(msg);
+                parts[1] = parseInt(parts[1]) - 1;
+            }
+            return;
+        }
+    }
+
+    // Creamos la variable posición, que tomará el valor posterior a la 's' para obtener el número de dados a tirar
+    let posicion = string.indexOf(letra) + 1;
+
+    while (posicion < string.length && (!isNaN(string[posicion]) || string[posicion] == "!"))
+        posicion++;
+    if (posicion != string.indexOf(letra) + 1) {
+        numero_dados = parseInt(string.substring(string.indexOf(letra) + 1, posicion));     // Obtenemos el número de dados
+        if (numero_dados == 1) {
+            bot.sendMessage(msg.chat.id, "Muy gracioso");
+            return;
+        }
+        msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
+         + msg.text.substring(++posicion, msg.text.length) + "!!");
+        tiradaDados(msg);
+    }
+    else
+        return;
+    // Si falla el proceso finaliza la función ya que no hay valor por defecto para caras_dado
 }
 
 
@@ -317,11 +472,39 @@ function tiradaDadosTinieblas(msg) {
 
 // Comando bienvenida
 bot.onText(/\/start/, (msg) => {
+    if (msg.text[0] != "/")
+        return;
+        
     bot.sendMessage(msg.chat.id, "Hola, bienvenido a su bot para dados de D&D, " + msg.from.first_name + "❤");    
+});
+
+// Comando para ver IDs
+bot.onText(/\/id/, (msg) => {
+    if (msg.text[0] != "/")
+        return;
+
+    bot.sendMessage(msg.chat.id, "*ID Grupal:* " + msg.chat.id + "\n*ID Indiv:* " + msg.from.id, {parse_mode : "Markdown"});    
+});
+
+// Comando para decir cositas a un chat en concreto
+bot.onText(/\/say/, (msg) => {
+    if (msg.text[0] != "/")
+        return;
+
+    let parts = msg.text.split(" ");
+    try {
+        bot.sendMessage(parts[1], msg.text.substring(msg.text.indexOf(parts[1]), msg.text.length).replace(parts[1], ""), {parse_mode : "Markdown"});
+    }
+    catch (error) {
+        fecha = new Date();
+        console.log(fecha + " " + error);
+    }
 });
 
 // Comando para realizar operaciones
 bot.onText(/\/calc/, (msg) => {
+    if (msg.text[0] != "/")
+        return;
     try {
         bot.sendMessage(msg.chat.id, "Resultado: " + eval(msg.text.substring(5, msg.text.length)));    
     }
@@ -334,11 +517,34 @@ bot.onText(/\/calc/, (msg) => {
 // Esta función lee todo el texto del chat y actúa si nos interesa
 bot.on('message', (msg) => {
     // En caso de que en el chat se escriba como primer caracter "/" y se escriba una 'w' se activará la función tiradaDadosTinieblas
-    if (msg.text[0] == "/" && msg.text.toLowerCase().includes("w"))
-        tiradaDadosTinieblas(msg);
+    if (msg.text[0] == "/" && msg.text.toLowerCase().includes("w")) {
+        try {
+            tiradaDadosTinieblas(msg);
+        }
+        catch (error) {
+            fecha = new Date();
+            console.log(fecha + " " + error);
+        }
+    }
+    // En caso de que en el chat se escriba como primer caracter "/" y se escriba una 's' se activará la función tiradaDadosSwade
+    if (msg.text[0] == "/" && msg.text.toLowerCase().includes("s")) {
+        try {
+            tiradaDadosSwade(msg);
+        }
+        catch (error) {
+            fecha = new Date();
+            console.log(fecha + " " + error);
+        }
+    }
     // En caso de que en el chat se escriba como primer caracter "/" y se escriba una 'd', 'h' o 'l' se activará la función tiradaDados
     else if (msg.text[0] == "/" && (msg.text.toLowerCase().includes("d") || msg.text.toLowerCase().includes("h") || msg.text.toLowerCase().includes("l"))) { 
-        tiradaDados(msg);
+        try {
+            tiradaDados(msg);
+        }
+        catch (error) {
+            fecha = new Date();
+            console.log(fecha + " " + error);
+        }
     }
 });
 
