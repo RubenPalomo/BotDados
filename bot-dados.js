@@ -455,20 +455,15 @@ function tiradaDadosSwade(msg) {
     if (posicion != string.indexOf(letra) + 1) {
         numero_dados = parseInt(string.substring(string.indexOf(letra) + 1, posicion));     // Obtenemos el número de dados
         if (numero_dados == 1) {
-            bot.sendMessage(msg.chat.id, "Muy gracioso");
+            bot.sendMessage(msg.chat.id, "Gorka joputa");
             return;
         }
-        if (msg.text.includes("+") || msg.text.includes("-"))
-            msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
-                + msg.text.substring(posicion, msg.text.length) + "!!");
-        else
-            msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
-                + msg.text.substring(++posicion, msg.text.length) + "!!");
+        
+        msg.text = string.replace("s" + numero_dados, "d" + numero_dados + "!"
+            + string.substring(posicion, string.length) + "!!");
+        console.log(msg.text);
         tiradaDados(msg);
     }
-    else
-        return;
-    // Si falla el proceso finaliza la función ya que no hay valor por defecto para caras_dado
 }
 
 
