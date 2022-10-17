@@ -458,8 +458,12 @@ function tiradaDadosSwade(msg) {
             bot.sendMessage(msg.chat.id, "Muy gracioso");
             return;
         }
-        msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
-         + msg.text.substring(++posicion, msg.text.length) + "!!");
+        if (msg.text.includes("+") || msg.text.includes("-"))
+            msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
+                + msg.text.substring(posicion, msg.text.length) + "!!");
+        else
+            msg.text = msg.text.replace("s" + numero_dados, "d" + numero_dados + "!"
+                + msg.text.substring(++posicion, msg.text.length) + "!!");
         tiradaDados(msg);
     }
     else
