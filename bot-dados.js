@@ -455,13 +455,12 @@ function tiradaDadosSwade(msg) {
     if (posicion != string.indexOf(letra) + 1) {
         numero_dados = parseInt(string.substring(string.indexOf(letra) + 1, posicion));     // Obtenemos el número de dados
         if (numero_dados == 1) {
-            bot.sendMessage(msg.chat.id, "Gorka joputa");
+            bot.sendMessage(msg.chat.id, "Muy gracioso");
             return;
         }
         
         msg.text = string.replace("s" + numero_dados, "d" + numero_dados + "!"
             + string.substring(posicion, string.length) + "!!");
-        console.log(msg.text);
         tiradaDados(msg);
     }
 }
